@@ -79,7 +79,11 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        df = pd.read_excel('Firstbatch_Input.xlsx')
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Firstbatch_Input.xlsx"
+        excel_data = requests.get(excel_url)
+        
+        # Reading the Excel file
+        df = pd.read_excel(io.BytesIO(excel_data.content))
         
         for i in df.index[1:10]:
             row_data = df.loc[i]
