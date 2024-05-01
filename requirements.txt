@@ -5,3 +5,4 @@ scrapy-zyte-smartproxy==2.3.1
 scrapinghub[msgpack]
 requests
 pandas
+openpyxl
