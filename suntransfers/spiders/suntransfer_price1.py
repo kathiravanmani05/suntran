@@ -2,7 +2,7 @@ import scrapy
 from scrapy.http import Request
 import pandas as pd
 from datetime import datetime
-
+import io
 import urllib.parse
 import requests
 import copy
