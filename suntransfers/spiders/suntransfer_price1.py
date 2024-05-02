@@ -7,9 +7,26 @@ import urllib.parse
 import requests
 import copy
 from scrapy import Selector
+import mysql.connector
 
+# Connect to the MySQL server
+try:
+    conn = mysql.connector.connect(
+        user='u413107573_suntransfer',
+        password='Sun@1551',
+        host='89.117.188.1',
+        database='u413107573_suntransfer'  # Optional: Specify the database
+    )
+    print("Connected to MySQL server successfully!")
+except mysql.connector.Error as e:
+    print(f"Error connecting to MySQL server: {e}")
+    exit()
+
+# Create a cursor object to execute SQL queries
+cursor = conn.cursor()
 
 class SuntransferPriceSpider(scrapy.Spider):
+
     name = "suntransfer_price1"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
@@ -79,108 +96,164 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Firstbatch_Input.xlsx"
-        excel_data = requests.get(excel_url)
+        #excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Firstbatch_Input.xlsx"
+        #excel_data = requests.get(excel_url)
+        #
+        ## Reading the Excel file
+        #df = pd.read_excel(io.BytesIO(excel_data.content))
         
-        # Reading the Excel file
-        df = pd.read_excel(io.BytesIO(excel_data.content))
-        
-        for i in df.index[190:]:
+        while True:
             try:
-                row_data = df.loc[i]
-                from_id = int(row_data['ID'])
-                to_id = int(row_data['ALTERNATE ID'])
-                aiport_code = row_data['CODE']
-                url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
-
-                temp_payload =   copy.deepcopy(self.payload)
-
-
-                temp_payload['booking[f_departure]'] = from_id
-                temp_payload['booking[f_arrival]'] = to_id
+                cursor.execute("SELECT * FROM suntransfer WHERE `update` IS NULL LIMIT 10")
+                rows = cursor.fetchall()
+                print(rows)
+                if len(rows) ==0:
+                    break
+                # Display the rows
+                for row in rows:
                 
-                stored_pax_values = []
-                x_paxs = {i: [] for i in range(1, 17)}
-                for i in range(1, 17):
-                    print('Loop',i)
-                    if i in stored_pax_values:
-                        continue
-                    temp_payload['booking[f_pax]'] = str(i)
-                    temp_payload['booking[f_adults]'] = str(i)
+                    from_id = row[2]
+                    to_id = row[6]
+                    aiport_code = row[8]
+                    url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
+                    temp_payload =   copy.deepcopy(self.payload)
+
+                    temp_payload['booking[f_departure]'] = from_id
+                    temp_payload['booking[f_arrival]'] = to_id
                     
+                    stored_pax_values = []
+                    x_paxs = {i: [] for i in range(1, 17)}
+                    for i in range(1, 17):
+                        print('Loop',i)
+                        if i in stored_pax_values:
+                            continue
+                        temp_payload['booking[f_pax]'] = str(i)
+                        temp_payload['booking[f_adults]'] = str(i)
+
+                        
+                    
+                        data = requests.post(url,headers=self.headers,data=temp_payload)
+                        
+                        response = Selector(text=data.text)
+                        no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
+                        if no_results:
+                            break
+                        vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
+
+                        
+                        for vehicle in vehicle_lst:
+                            pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
+                            if pax:
+                                pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
+                                stored_pax_values.append(int(pax))
+                                
+                                if int(pax) < 16:
+                                    price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
+                                    print(pax,price)
+                                    if price:
+                                        price = price.replace('€', '').strip()
+                                        
+                                        x_paxs[int(pax)].append(price)
+                        
+                    lowest_values = {}
+                    
+                    for passengers, prices in x_paxs.items():
+                        if prices:
+                            lowest_values[passengers] = min(prices)  # Find the minimum price
+                        else:
+                            lowest_values[passengers] = None
                 
-                    data = requests.post(url,headers=self.headers,data=temp_payload)
-                    
-                    response = Selector(text=data.text)
-                    no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
-                    if no_results:
-                        break
-                    vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-
-                    
-                    for vehicle in vehicle_lst:
-                        pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
-                        if pax:
-                            pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
-                            stored_pax_values.append(int(pax))
-                            
-                            if int(pax) < 16:
-                                price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
-                                print(pax,price)
-                                if price:
-                                    price = price.replace('€', '').strip()
-                                    
-                                    x_paxs[int(pax)].append(price)
-                    
-                lowest_values = {}
-                
-                for passengers, prices in x_paxs.items():
-                    if prices:
-                        lowest_values[passengers] = min(prices)  # Find the minimum price
-                    else:
-                        lowest_values[passengers] = None
-            
-                pax1 = lowest_values.get(1)
-                pax2 = lowest_values.get(2)
-                pax3 = lowest_values.get(3)
-                pax4 = lowest_values.get(4)
-                pax5 = lowest_values.get(5)
-                pax6 = lowest_values.get(6)
-                pax7 = lowest_values.get(7)
-                pax8 = lowest_values.get(8)
-                pax9 = lowest_values.get(9)
-                pax10 = lowest_values.get(10)
-                pax11 = lowest_values.get(11)
-                pax12 = lowest_values.get(12)
-                pax13 = lowest_values.get(13)
-                pax14 = lowest_values.get(14)
-                pax15 = lowest_values.get(15)
-                pax16 = lowest_values.get(16)
+                    pax1 = lowest_values.get(1)
+                    pax2 = lowest_values.get(2)
+                    pax3 = lowest_values.get(3)
+                    pax4 = lowest_values.get(4)
+                    pax5 = lowest_values.get(5)
+                    pax6 = lowest_values.get(6)
+                    pax7 = lowest_values.get(7)
+                    pax8 = lowest_values.get(8)
+                    pax9 = lowest_values.get(9)
+                    pax10 = lowest_values.get(10)
+                    pax11 = lowest_values.get(11)
+                    pax12 = lowest_values.get(12)
+                    pax13 = lowest_values.get(13)
+                    pax14 = lowest_values.get(14)
+                    pax15 = lowest_values.get(15)
+                    pax16 = lowest_values.get(16)
                 
 
-                yield { 'from_id':from_id,
-                        'to_id':to_id,
-                        'pax1':pax1,
-                        'pax2':pax2,
-                        'pax3':pax3,
-                        'pax4':pax4,
-                        'pax5':pax5,
-                        'pax6':pax6,
-                        'pax7':pax7,
-                        'pax8':pax8,
-                        'pax9':pax9,
-                        'pax10':pax10,
-                        'pax11':pax11,
-                        'pax12':pax12,
-                        'pax13':pax13,
-                        'pax14':pax14,
-                        'pax15':pax15,
-                        'pax16':pax16,
+                    yield { 'from_id':from_id,
+                            'to_id':to_id,
+                            'pax1':pax1,
+                            'pax2':pax2,
+                            'pax3':pax3,
+                            'pax4':pax4,
+                            'pax5':pax5,
+                            'pax6':pax6,
+                            'pax7':pax7,
+                            'pax8':pax8,
+                            'pax9':pax9,
+                            'pax10':pax10,
+                            'pax11':pax11,
+                            'pax12':pax12,
+                            'pax13':pax13,
+                            'pax14':pax14,
+                            'pax15':pax15,
+                            'pax16':pax16,
+                            'update':True
 
-                    }
-            except:
-                pass
+                        }
+                    update_query = """
+                    UPDATE suntransfer 
+                    SET `update` = 'True',
+                        pax1 = %(pax1)s,
+                        pax2 = %(pax2)s,
+                        pax3 = %(pax3)s,
+                        pax4 = %(pax4)s,
+                        pax5 = %(pax5)s,
+                        pax6 = %(pax6)s,
+                        pax7 = %(pax7)s,
+                        pax8 = %(pax8)s,
+                        pax9 = %(pax9)s,
+                        pax10 = %(pax10)s,
+                        pax11 = %(pax11)s,
+                        pax12 = %(pax12)s,
+                        pax13 = %(pax13)s,
+                        pax14 = %(pax14)s,
+                        pax15 = %(pax15)s,
+                        pax16 = %(pax16)s
+                    WHERE `ID` = %(id)s AND `ALTERNATE_ID` = %(alternate_id)s
+                    """
+                    
+                    # Assuming 'pax1' through 'pax16' are variables holding the values you want to update
+                    # and 'id', 'alternate_id' are the corresponding IDs in the database
+                    cursor.execute(update_query, {
+                        'pax1': pax1,
+                        'pax2': pax2,
+                        'pax3': pax3,
+                        'pax4': pax4,
+                        'pax5': pax5,
+                        'pax6': pax6,
+                        'pax7': pax7,
+                        'pax8': pax8,
+                        'pax9': pax9,
+                        'pax10': pax10,
+                        'pax11': pax11,
+                        'pax12': pax12,
+                        'pax13': pax13,
+                        'pax14': pax14,
+                        'pax15': pax15,
+                        'pax16': pax16,
+                        'id': row[2],  # Assuming ID is in the 3rd position
+                        'alternate_id': row[6]  # Assuming ALTERNATE_ID is in the 7th position
+                    })
+                    
+                    conn.commit()
+                    
+
+            except Exception as e:
+                import pdb;pdb.set_trace()
+                print(e)
 
 
 
