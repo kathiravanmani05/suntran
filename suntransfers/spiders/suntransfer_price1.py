@@ -86,98 +86,101 @@ class SuntransferPriceSpider(scrapy.Spider):
         df = pd.read_excel(io.BytesIO(excel_data.content))
         
         for i in df.index[190:]:
-            row_data = df.loc[i]
-            from_id = int(row_data['ID'])
-            to_id = int(row_data['ALTERNATE ID'])
-            aiport_code = row_data['CODE']
-            url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
+            try:
+                row_data = df.loc[i]
+                from_id = int(row_data['ID'])
+                to_id = int(row_data['ALTERNATE ID'])
+                aiport_code = row_data['CODE']
+                url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
-            temp_payload =   copy.deepcopy(self.payload)
+                temp_payload =   copy.deepcopy(self.payload)
 
 
-            temp_payload['booking[f_departure]'] = from_id
-            temp_payload['booking[f_arrival]'] = to_id
-            
-            stored_pax_values = []
-            x_paxs = {i: [] for i in range(1, 17)}
-            for i in range(1, 17):
-                print('Loop',i)
-                if i in stored_pax_values:
-                    continue
-                temp_payload['booking[f_pax]'] = str(i)
-                temp_payload['booking[f_adults]'] = str(i)
-
+                temp_payload['booking[f_departure]'] = from_id
+                temp_payload['booking[f_arrival]'] = to_id
                 
-            
-                data = requests.post(url,headers=self.headers,data=temp_payload)
-                
-                response = Selector(text=data.text)
-                no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
-                if no_results:
-                    break
-                vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
+                stored_pax_values = []
+                x_paxs = {i: [] for i in range(1, 17)}
+                for i in range(1, 17):
+                    print('Loop',i)
+                    if i in stored_pax_values:
+                        continue
+                    temp_payload['booking[f_pax]'] = str(i)
+                    temp_payload['booking[f_adults]'] = str(i)
 
+                    
                 
-                for vehicle in vehicle_lst:
-                    pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
-                    if pax:
-                        pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
-                        stored_pax_values.append(int(pax))
-                        
-                        if int(pax) < 16:
-                            price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
-                            print(pax,price)
-                            if price:
-                                price = price.replace('€', '').strip()
-                                
-                                x_paxs[int(pax)].append(float(price))  # Convert price to float
+                    data = requests.post(url,headers=self.headers,data=temp_payload)
+                    
+                    response = Selector(text=data.text)
+                    no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
+                    if no_results:
+                        break
+                    vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
+
+                    
+                    for vehicle in vehicle_lst:
+                        pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
+                        if pax:
+                            pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
+                            stored_pax_values.append(int(pax))
+                            
+                            if int(pax) < 16:
+                                price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
+                                print(pax,price)
+                                if price:
+                                    price = price.replace('€', '').strip()
+                                    
+                                    x_paxs[int(pax)].append(price)
+                    
+                lowest_values = {}
                 
-            lowest_values = {}
+                for passengers, prices in x_paxs.items():
+                    if prices:
+                        lowest_values[passengers] = min(prices)  # Find the minimum price
+                    else:
+                        lowest_values[passengers] = None
             
-            for passengers, prices in x_paxs.items():
-                if prices:
-                    lowest_values[passengers] = min(prices)  # Find the minimum price
-                else:
-                    lowest_values[passengers] = None
-        
-            pax1 = lowest_values.get(1)
-            pax2 = lowest_values.get(2)
-            pax3 = lowest_values.get(3)
-            pax4 = lowest_values.get(4)
-            pax5 = lowest_values.get(5)
-            pax6 = lowest_values.get(6)
-            pax7 = lowest_values.get(7)
-            pax8 = lowest_values.get(8)
-            pax9 = lowest_values.get(9)
-            pax10 = lowest_values.get(10)
-            pax11 = lowest_values.get(11)
-            pax12 = lowest_values.get(12)
-            pax13 = lowest_values.get(13)
-            pax14 = lowest_values.get(14)
-            pax15 = lowest_values.get(15)
-            pax16 = lowest_values.get(16)
-            
+                pax1 = lowest_values.get(1)
+                pax2 = lowest_values.get(2)
+                pax3 = lowest_values.get(3)
+                pax4 = lowest_values.get(4)
+                pax5 = lowest_values.get(5)
+                pax6 = lowest_values.get(6)
+                pax7 = lowest_values.get(7)
+                pax8 = lowest_values.get(8)
+                pax9 = lowest_values.get(9)
+                pax10 = lowest_values.get(10)
+                pax11 = lowest_values.get(11)
+                pax12 = lowest_values.get(12)
+                pax13 = lowest_values.get(13)
+                pax14 = lowest_values.get(14)
+                pax15 = lowest_values.get(15)
+                pax16 = lowest_values.get(16)
+                
 
-            yield { 'from_id':from_id,
-                    'to_id':to_id,
-                    'pax1':pax1,
-                    'pax2':pax2,
-                    'pax3':pax3,
-                    'pax4':pax4,
-                    'pax5':pax5,
-                    'pax6':pax6,
-                    'pax7':pax7,
-                    'pax8':pax8,
-                    'pax9':pax9,
-                    'pax10':pax10,
-                    'pax11':pax11,
-                    'pax12':pax12,
-                    'pax13':pax13,
-                    'pax14':pax14,
-                    'pax15':pax15,
-                    'pax16':pax16,
+                yield { 'from_id':from_id,
+                        'to_id':to_id,
+                        'pax1':pax1,
+                        'pax2':pax2,
+                        'pax3':pax3,
+                        'pax4':pax4,
+                        'pax5':pax5,
+                        'pax6':pax6,
+                        'pax7':pax7,
+                        'pax8':pax8,
+                        'pax9':pax9,
+                        'pax10':pax10,
+                        'pax11':pax11,
+                        'pax12':pax12,
+                        'pax13':pax13,
+                        'pax14':pax14,
+                        'pax15':pax15,
+                        'pax16':pax16,
 
-                   }
+                    }
+            except:
+                pass
 
 
 
