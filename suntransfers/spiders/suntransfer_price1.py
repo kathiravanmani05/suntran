@@ -104,9 +104,8 @@ class SuntransferPriceSpider(scrapy.Spider):
         
         while True:
             try:
-                cursor.execute("SELECT * FROM suntransfer WHERE `update` IS NULL LIMIT 10")
+                cursor.execute("SELECT * FROM (SELECT * FROM suntransfer WHERE `update` IS NULL ORDER BY id ASC LIMIT 10) AS subquery")
                 rows = cursor.fetchall()
-                print(rows)
                 if len(rows) ==0:
                     break
                 # Display the rows
@@ -252,7 +251,17 @@ class SuntransferPriceSpider(scrapy.Spider):
                     
 
             except Exception as e:
-                import pdb;pdb.set_trace()
+                try:
+                    conn = mysql.connector.connect(
+                        user='u413107573_suntransfer',
+                        password='Sun@1551',
+                        host='89.117.188.1',
+                        database='u413107573_suntransfer'  # Optional: Specify the database
+                    )
+                    print("Connected to MySQL server successfully!")
+                except mysql.connector.Error as e:
+                    print(f"Error connecting to MySQL server: {e}")
+                    exit()
                 print(e)
 
 
