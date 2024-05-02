@@ -104,7 +104,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         
         while True:
             try:
-                cursor.execute("SELECT * FROM (SELECT * FROM suntransfer WHERE `update` IS NULL ORDER BY id ASC LIMIT 10) AS subquery")
+                cursor.execute("SELECT * FROM suntransfer WHERE `update` IS NULL ORDER BY id DESC LIMIT 10")
                 rows = cursor.fetchall()
                 if len(rows) ==0:
                     break
