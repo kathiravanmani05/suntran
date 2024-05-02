@@ -85,7 +85,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         # Reading the Excel file
         df = pd.read_excel(io.BytesIO(excel_data.content))
         
-        for i in df.index:
+        for i in df.index[190:]:
             row_data = df.loc[i]
             from_id = int(row_data['ID'])
             to_id = int(row_data['ALTERNATE ID'])
@@ -122,6 +122,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
                     if pax:
                         pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
+                        stored_pax_values.append(int(pax))
                         
                         if int(pax) < 16:
                             price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
