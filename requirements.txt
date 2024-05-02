@@ -6,3 +6,4 @@ scrapinghub[msgpack]
 requests
 pandas
 openpyxl
+mysql-connector-python
