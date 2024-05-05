@@ -88,8 +88,8 @@ class SuntransferPriceSpider(scrapy.Spider):
         for i in df.index:
             try:
                 row_data = df.loc[i]
-                from_id = int(row_data['ID'])
-                to_id = int(row_data['ALTERNATE ID'])
+                to_id = int(row_data['ID'])
+                from_id= int(row_data['ALTERNATE ID'])
                 aiport_code = row_data['CODE']
                 url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
