@@ -10,7 +10,7 @@ from scrapy import Selector
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price1"
+    name = "suntransfer_price1_reverse"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
@@ -56,7 +56,7 @@ class SuntransferPriceSpider(scrapy.Spider):
     'booking[f_arrival]': '25077',  # TO
     'booking[a_arrival][id]': '',
     'booking[a_arrival][cod]': '',
-    'booking[f_fromto]': 'ar_1',
+    'booking[f_fromto]': 'ra_1',
     'booking[f_outbound_day]': booking.get('f_outbound_day'),#07
     'booking[f_outbound_month]': booking.get('f_outbound_month'),#05-2024
     'booking[f_outbound_date]': booking.get('f_outbound_date'),#07/05/2024
@@ -79,7 +79,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch2.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch3_ra.xlsx"
         excel_data = requests.get(excel_url)
         
         # Reading the Excel file
@@ -88,8 +88,8 @@ class SuntransferPriceSpider(scrapy.Spider):
         for i in df.index:
             try:
                 row_data = df.loc[i]
-                from_id = int(row_data['ID'])
-                to_id = int(row_data['ALTERNATE ID'])
+                to_id = int(row_data['ID'])
+                from_id= int(row_data['ALTERNATE ID'])
                 aiport_code = row_data['CODE']
                 url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
