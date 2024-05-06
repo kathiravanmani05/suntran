@@ -79,7 +79,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch4.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch5.xlsx"
         excel_data = requests.get(excel_url)
         
         # Reading the Excel file
