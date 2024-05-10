@@ -40,7 +40,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     # Creating booking dictionary with desired keys and values
     booking = {
-        'f_outbound_day': '7',
+        'f_outbound_day': '14',
         'f_outbound_month': f"{dt_object.month}-{dt_object.year}",
         'f_outbound_date': dt_object.strftime('%d/%m/%Y'),
         'f_outbound_hours': '10',
@@ -79,7 +79,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch5.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch6.xlsx"
         excel_data = requests.get(excel_url)
         
         # Reading the Excel file
