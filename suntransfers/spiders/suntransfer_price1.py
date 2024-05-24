@@ -14,7 +14,7 @@ class SuntransferPriceSpider(scrapy.Spider):
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
-    input_date = "07-05-2024 10:00"
+    input_date = "28-05-2024 10:00"
 
     # Parse the input string into a datetime object
     dt_object = datetime.strptime(input_date, '%d-%m-%Y %H:%M')
@@ -40,7 +40,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     # Creating booking dictionary with desired keys and values
     booking = {
-        'f_outbound_day': '14',
+        'f_outbound_day': '28',
         'f_outbound_month': f"{dt_object.month}-{dt_object.year}",
         'f_outbound_date': dt_object.strftime('%d/%m/%Y'),
         'f_outbound_hours': '10',
