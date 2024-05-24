@@ -81,11 +81,10 @@ class SuntransferPriceSpider(scrapy.Spider):
     def parse(self, response):
         excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input1.xlsx"
         excel_data = requests.get(excel_url)
-        
-        # Reading the Excel file
         df = pd.read_excel(io.BytesIO(excel_data.content))
-        
+    
         for i in df.index:
+           
             try:
                 row_data = df.loc[i]
                 from_id = int(row_data['from_alternateId'])
@@ -179,7 +178,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                         'pax16':pax16,
 
                     }
-            except:
+            except Exception as e:
+                print(e)
                 pass
 
 
