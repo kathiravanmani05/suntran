@@ -79,7 +79,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/ValidInputBatch6.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input1.xlsx"
         excel_data = requests.get(excel_url)
         
         # Reading the Excel file
@@ -88,8 +88,8 @@ class SuntransferPriceSpider(scrapy.Spider):
         for i in df.index:
             try:
                 row_data = df.loc[i]
-                from_id = int(row_data['ID'])
-                to_id = int(row_data['ALTERNATE ID'])
+                from_id = int(row_data['from_alternateId'])
+                to_id = int(row_data['to_alternateId'])
                 aiport_code = row_data['CODE']
                 url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
