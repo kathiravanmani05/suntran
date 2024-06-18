@@ -8,6 +8,9 @@ import requests
 import copy
 from scrapy import Selector
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
     name = "suntransfer_price1"
@@ -121,8 +124,11 @@ class SuntransferPriceSpider(scrapy.Spider):
                     no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
                     if no_results:
                         break
+                    else:
+                        logger.warning(f"{route_dest}_{route_start}_{data.text}")
                     vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-
+                    if not vehicle_lst:
+                        logger.info(f"{route_dest}_{route_start}_{data.text}")  
                     
                     for vehicle in vehicle_lst:
                         pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
@@ -187,8 +193,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
                     }
             except Exception as e:
-                print(e)
-                pass
+                logger.error(f"{route_dest}_{route_start}_{e}")
 
 
 
