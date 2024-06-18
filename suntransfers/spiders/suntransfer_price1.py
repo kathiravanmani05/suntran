@@ -89,6 +89,12 @@ class SuntransferPriceSpider(scrapy.Spider):
                 row_data = df.loc[i]
                 from_id = int(row_data['from_alternateId'])
                 to_id = int(row_data['to_alternateId'])
+                try:
+                    route_dest = row_data['route_dest']
+                    route_start = row_data['route_start']
+                except :
+                    route_dest = None
+                    route_start = None
                 aiport_code = row_data['CODE']
                 url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
 
@@ -101,7 +107,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 stored_pax_values = []
                 x_paxs = {i: [] for i in range(1, 17)}
                 for i in range(1, 17):
-                    print('Loop',i)
+                    
                     if i in stored_pax_values:
                         continue
                     temp_payload['booking[f_pax]'] = str(i)
@@ -126,7 +132,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                             
                             if int(pax) < 16:
                                 price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
-                                print(pax,price)
+                                
                                 if price:
                                     price = price.replace('€', '').strip()
                                     
@@ -160,6 +166,8 @@ class SuntransferPriceSpider(scrapy.Spider):
 
                 yield { 'from_id':from_id,
                         'to_id':to_id,
+                        'route_dest':route_dest,
+                        'route_start':route_start,
                         'pax1':pax1,
                         'pax2':pax2,
                         'pax3':pax3,
