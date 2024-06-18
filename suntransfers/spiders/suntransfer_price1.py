@@ -109,6 +109,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 
                 stored_pax_values = []
                 x_paxs = {i: [] for i in range(1, 17)}
+                logger.info(f"{route_dest}_{route_start}")  
                 for i in range(1, 17):
                     
                     if i in stored_pax_values:
@@ -124,11 +125,9 @@ class SuntransferPriceSpider(scrapy.Spider):
                     no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
                     if no_results:
                         break
-                    else:
-                        logger.warning(f"{route_dest}_{route_start}_{data.text}")
+
                     vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-                    if not vehicle_lst:
-                        logger.info(f"{route_dest}_{route_start}_{data.text}")  
+      
                     
                     for vehicle in vehicle_lst:
                         pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
@@ -151,7 +150,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                         lowest_values[passengers] = min(prices)  # Find the minimum price
                     else:
                         lowest_values[passengers] = None
-            
+                logger.info(f"{route_dest}_{route_start}_{passengers}")  
                 pax1 = lowest_values.get(1)
                 pax2 = lowest_values.get(2)
                 pax3 = lowest_values.get(3)
