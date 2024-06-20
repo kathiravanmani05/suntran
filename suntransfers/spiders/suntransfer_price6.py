@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price1"
+    name = "suntransfer_price6"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
@@ -86,7 +86,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         excel_data = requests.get(excel_url)
         df = pd.read_excel(io.BytesIO(excel_data.content))
     
-        for i in df.index[:1000]:
+        for i in df.index[5000:6000]:
            
             try:
                 row_data = df.loc[i]
