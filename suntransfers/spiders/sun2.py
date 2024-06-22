@@ -12,7 +12,7 @@ import logging,requests
 logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price2"
+    name = "suntransfer_price22"
     start_urls = ["https://www.suntransfers.com/"]
 
     input_date = "25-06-2024 10:00"
