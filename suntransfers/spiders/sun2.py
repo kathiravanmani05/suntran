@@ -86,7 +86,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         df = pd.read_excel(io.BytesIO(excel_data.content))
         #df = pd.read_excel('input.xlsx')
 
-        for i in df.index[0:10]:
+        for i in df.index:
             try:
                 row_data = df.loc[i]
                 from_id = int(row_data['from_alternateId'])
