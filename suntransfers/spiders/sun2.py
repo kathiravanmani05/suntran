@@ -7,12 +7,12 @@ import urllib.parse
 import requests
 import copy
 from scrapy import Selector
-import logging,requests
+import logging
 
 logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price22"
+    name = "suntransfer_price5222"
     start_urls = ["https://www.suntransfers.com/"]
 
     input_date = "25-06-2024 10:00"
@@ -81,12 +81,12 @@ class SuntransferPriceSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input1.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/batch3_run/input.xlsx"
         excel_data = requests.get(excel_url)
         df = pd.read_excel(io.BytesIO(excel_data.content))
         #df = pd.read_excel('input.xlsx')
 
-        for i in df.index:
+        for i in df.index[0:10]:
             try:
                 row_data = df.loc[i]
                 from_id = str(row_data['from_alternateId'])
