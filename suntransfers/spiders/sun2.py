@@ -89,8 +89,8 @@ class SuntransferPriceSpider(scrapy.Spider):
         for i in df.index[0:10]:
             try:
                 row_data = df.loc[i]
-                from_id = str(row_data['from_alternateId'])
-                to_id = str(row_data['to_alternateId'])
+                from_id = int(row_data['from_alternateId'])
+                to_id = int(row_data['to_alternateId'])
                 route_dest = row_data.get('route_dest', None)
                 route_start = row_data.get('route_start', None)
                 aiport_code = row_data['CODE']
