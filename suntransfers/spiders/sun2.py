@@ -1,5 +1,5 @@
 import scrapy
-from scrapy.http import Request
+from scrapy.http import Request, FormRequest
 import pandas as pd
 from datetime import datetime
 import io
