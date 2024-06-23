@@ -10,7 +10,7 @@ from scrapy import Selector
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price1"
+    name = "suntransfer_price3"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
@@ -79,7 +79,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input3.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input5.xlsx"
         excel_data = requests.get(excel_url)
         df = pd.read_excel(io.BytesIO(excel_data.content))
     
