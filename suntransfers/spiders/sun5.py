@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_new_1"
+    name = "suntransfer_price_new_4"
     start_urls = ["https://www.suntransfers.com/"]
 
     input_date = "25-06-2024 10:00"
@@ -86,7 +86,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         df = pd.read_excel(io.BytesIO(excel_data.content))
         #df = pd.read_excel('input.xlsx')
 
-        for i in df.index[:1000]:
+        for i in df.index[3000:4000]:
             try:
                 row_data = df.loc[i]
                 from_id = int(row_data['from_alternateId'])
