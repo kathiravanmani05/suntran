@@ -86,7 +86,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         excel_data = requests.get(excel_url)
         df = pd.read_excel(io.BytesIO(excel_data.content))
     
-        for i in df.index:
+        for i in df.index[0:1000]:
            
             try:
                 row_data = df.loc[i]
