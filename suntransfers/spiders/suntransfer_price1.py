@@ -77,7 +77,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         df = pd.read_excel('Batch2_input3.xlsx')
         
         tasks = []
-        for i in range(2800, 3300, 10):  # Process rows in batches of 10
+        for i in range(3300, 8000, 10):  # Process rows in batches of 10
             batch = df.iloc[i:i+10]
             tasks.append(self.process_batch(batch))
         
