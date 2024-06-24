@@ -117,7 +117,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     temp_payload['booking[f_adults]'] = str(pax_count)
 
                     async with session.post(url, headers=self.headers, data=temp_payload) as resp:
-                        price(resp.text())
+                        print(resp.text())
                         data = await resp.text()
                         response = Selector(text=data)
                         no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
