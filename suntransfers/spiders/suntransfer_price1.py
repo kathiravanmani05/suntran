@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
     name = "suntransfer_1"
-    #start_urls = ["https://www.suntransfers.com/"]
+    start_urls = ["https://www.suntransfers.com/"]
 
     input_date = "25-06-2024 10:00"
     dt_object = datetime.strptime(input_date, '%d-%m-%Y %H:%M')
