@@ -74,7 +74,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     async def parse(self, response):
         excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input3.xlsx"
-        df = pd.read_excel('input2.xlsx')
+        df = pd.read_excel('Batch2_input3.xlsx')
         
         tasks = []
         for i in range(0, 200, 10):  # Process rows in batches of 10
