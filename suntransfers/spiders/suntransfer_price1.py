@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class SuntransferPriceSpider(scrapy.Spider):
     name = "suntransfer_1"
-    start_urls = ["https://www.suntransfers.com/"]
+    #start_urls = ["https://www.suntransfers.com/"]
 
     input_date = "25-06-2024 10:00"
     dt_object = datetime.strptime(input_date, '%d-%m-%Y %H:%M')
@@ -117,6 +117,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     temp_payload['booking[f_adults]'] = str(pax_count)
 
                     async with session.post(url, headers=self.headers, data=temp_payload) as resp:
+                        price(resp.text())
                         data = await resp.text()
                         response = Selector(text=data)
                         no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
