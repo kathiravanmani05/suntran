@@ -81,7 +81,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 500
+        self.batch_size = 10
         self.mysql_config = {
             'user': 'u413107573_suntransfer_nw',
             'password': 'Suntransfer2024',
@@ -98,7 +98,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         self.cursor.close()
         self.conn.close()
 
-    def start_requests(self):
+    def parse(self,response):
         query = "SELECT * FROM batch2_input1"
         self.cursor.execute(query)
         batch_number = 0
@@ -113,12 +113,13 @@ class SuntransferPriceSpider(scrapy.Spider):
             batch_number += 1
             # Simulate scraping data for each batch
             for row in rows:
-                output_data = self.parser(row)
-
+                output_data = self.parser_data(row)
+                # Process output_data as needed (e.g., save to database)
+                # Example: self.save_to_database(output_data)
                 yield output_data
 
-
-    def parser(self,row):
+   
+    def parser_data(self,row):
 
             output_data = copy.deepcopy(row)
             from_id = int(row['from_alternateId'])
