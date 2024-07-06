@@ -7,14 +7,16 @@ import urllib.parse
 import requests
 import copy
 from scrapy import Selector
+import mysql.connector
+
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price1"
+    name = "suntransfer_price"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
-    input_date = "25-06-2024 10:00"
+    input_date = "25-07-2024 10:00"
 
     # Parse the input string into a datetime object
     dt_object = datetime.strptime(input_date, '%d-%m-%Y %H:%M')
@@ -77,110 +79,122 @@ class SuntransferPriceSpider(scrapy.Spider):
     'booking[f_outbound_time]': booking.get('f_outbound_time')  # Dynamic outbound time
     }
 
+    def __init__(self, *args, **kwargs):
+        super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
+        self.batch_size = 500
+        self.mysql_config = {
+            'user': 'u413107573_suntransfer_nw',
+            'password': 'Suntransfer2024',
+            'host': 'srv945.hstgr.io',
+            'database': 'u413107573_suntransfer_nw'
+        }
+        self.connect_mysql()
 
-    def parse(self, response):
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/main/Batch2_input3.xlsx"
-        excel_data = requests.get(excel_url)
-        df = pd.read_excel(io.BytesIO(excel_data.content))
-    
-        for i in df.index:
-           
-            try:
-                row_data = df.loc[i]
-                from_id = int(row_data['from_alternateId'])
-                to_id = int(row_data['to_alternateId'])
-                aiport_code = row_data['CODE']
-                url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
+    def connect_mysql(self):
+        self.conn = mysql.connector.connect(**self.mysql_config)
+        self.cursor = self.conn.cursor(dictionary=True)
 
-                temp_payload =   copy.deepcopy(self.payload)
+    def close_mysql(self):
+        self.cursor.close()
+        self.conn.close()
+
+    def start_requests(self):
+        query = "SELECT * FROM batch2_input1"
+        self.cursor.execute(query)
+        batch_number = 0
+        while True:
+            rows = self.cursor.fetchmany(self.batch_size)
+
+            if batch_number == 1:
+                break
+
+            if not rows:
+                break
+            batch_number += 1
+            # Simulate scraping data for each batch
+            for row in rows:
+                output_data = self.parser(row)
+
+                yield output_data
 
 
-                temp_payload['booking[f_departure]'] = from_id
-                temp_payload['booking[f_arrival]'] = to_id
+    def parser(self,row):
+
+            output_data = copy.deepcopy(row)
+            from_id = int(row['from_alternateId'])
+            to_id = int(row['to_alternateId'])
+            aiport_code = row['CODE']
+            url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
+            temp_payload =   copy.deepcopy(self.payload)
+
+            temp_payload['booking[f_departure]'] = from_id
+            temp_payload['booking[f_arrival]'] = to_id
+
+            stored_pax_values = []
+            x_paxs = {i: [] for i in range(1, 17)}
+            for i in range(1, 17):
+                print('Loop',i)
+                if i in stored_pax_values:
+                    continue
+                temp_payload['booking[f_pax]'] = str(i)
+                temp_payload['booking[f_adults]'] = str(i)
+
                 
-                stored_pax_values = []
-                x_paxs = {i: [] for i in range(1, 17)}
-                for i in range(1, 17):
-                    print('Loop',i)
-                    if i in stored_pax_values:
-                        continue
-                    temp_payload['booking[f_pax]'] = str(i)
-                    temp_payload['booking[f_adults]'] = str(i)
-
-                    
-                
-                    data = requests.post(url,headers=self.headers,data=temp_payload)
-                    
-                    response = Selector(text=data.text)
-                    no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
-                    if no_results:
-                        break
-                    vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-
-                    
-                    for vehicle in vehicle_lst:
-                        pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
-                        if pax:
-                            pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
-                            stored_pax_values.append(int(pax))
-                            
-                            if int(pax) < 16:
-                                price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
-                                print(pax,price)
-                                if price:
-                                    price = price.replace('€', '').strip()
-                                    
-                                    x_paxs[int(pax)].append(price)
-                    
-                lowest_values = {}
-                
-                for passengers, prices in x_paxs.items():
-                    if prices:
-                        lowest_values[passengers] = min(prices)  # Find the minimum price
-                    else:
-                        lowest_values[passengers] = None
             
-                pax1 = lowest_values.get(1)
-                pax2 = lowest_values.get(2)
-                pax3 = lowest_values.get(3)
-                pax4 = lowest_values.get(4)
-                pax5 = lowest_values.get(5)
-                pax6 = lowest_values.get(6)
-                pax7 = lowest_values.get(7)
-                pax8 = lowest_values.get(8)
-                pax9 = lowest_values.get(9)
-                pax10 = lowest_values.get(10)
-                pax11 = lowest_values.get(11)
-                pax12 = lowest_values.get(12)
-                pax13 = lowest_values.get(13)
-                pax14 = lowest_values.get(14)
-                pax15 = lowest_values.get(15)
-                pax16 = lowest_values.get(16)
+                data = requests.post(url,headers=self.headers,data=temp_payload)
                 
+                response = Selector(text=data.text)
+                no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
+                if no_results:
+                    break
+                vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
 
-                yield { 'from_id':from_id,
-                        'to_id':to_id,
-                        'pax1':pax1,
-                        'pax2':pax2,
-                        'pax3':pax3,
-                        'pax4':pax4,
-                        'pax5':pax5,
-                        'pax6':pax6,
-                        'pax7':pax7,
-                        'pax8':pax8,
-                        'pax9':pax9,
-                        'pax10':pax10,
-                        'pax11':pax11,
-                        'pax12':pax12,
-                        'pax13':pax13,
-                        'pax14':pax14,
-                        'pax15':pax15,
-                        'pax16':pax16,
+                
+                for vehicle in vehicle_lst:
+                    pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
+                    if pax:
+                        pax = pax.replace('Up to ', '').replace(' passengers', '').strip()
+                        stored_pax_values.append(int(pax))
+                        
+                        if int(pax) < 16:
+                            price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
+                            print(pax,price)
+                            if price:
+                                price = price.replace('€', '').strip()
+                                
+                                x_paxs[int(pax)].append(price)
+                
+            lowest_values = {}
+            
+            for passengers, prices in x_paxs.items():
+                if prices:
+                    lowest_values[passengers] = min(prices)  # Find the minimum price
+                else:
+                    lowest_values[passengers] = None
 
-                    }
-            except Exception as e:
-                print(e)
-                pass
+            output_data['pax_1'] = lowest_values.get(1)
+            output_data['pax_2'] = lowest_values.get(2)
+            output_data['pax_3'] = lowest_values.get(3)
+            output_data['pax_4'] = lowest_values.get(4)
+            output_data['pax_5'] = lowest_values.get(5)
+            output_data['pax_6'] = lowest_values.get(6)
+            output_data['pax_7'] = lowest_values.get(7)
+            output_data['pax_8'] = lowest_values.get(8)
+            output_data['pax_9'] = lowest_values.get(9)
+            output_data['pax_10'] = lowest_values.get(10)
+            output_data['pax_11'] = lowest_values.get(11)
+            output_data['pax_12'] = lowest_values.get(12)
+            output_data['pax_13'] = lowest_values.get(13)
+            output_data['pax_14'] = lowest_values.get(14)
+            output_data['pax_15'] = lowest_values.get(15)
+            output_data['pax_16'] = lowest_values.get(16)
+
+            return output_data
+            
+
+        #self.conn.commit()  # Commit after each batch
+
+
 
 
 
