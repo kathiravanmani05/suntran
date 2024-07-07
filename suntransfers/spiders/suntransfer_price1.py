@@ -113,10 +113,68 @@ class SuntransferPriceSpider(scrapy.Spider):
             batch_number += 1
             # Simulate scraping data for each batch
             for row in rows:
+                #import pdb;pdb.set_trace()
                 output_data = self.parser_data(row)
                 # Process output_data as needed (e.g., save to database)
                 # Example: self.save_to_database(output_data)
+                self.save_to_mysql(output_data)
                 yield output_data
+            self.conn.commit()
+    
+    def save_to_mysql(self, data):
+        # Update query with placeholders for the values to be updated
+        query = """
+            UPDATE your_processed_table
+            SET 
+                pax_1 = %s,
+                pax_2 = %s,
+                pax_3 = %s,
+                pax_4 = %s,
+                pax_5 = %s,
+                pax_6 = %s,
+                pax_7 = %s,
+                pax_8 = %s,
+                pax_9 = %s,
+                pax_10 = %s,
+                pax_11 = %s,
+                pax_12 = %s,
+                pax_13 = %s,
+                pax_14 = %s,
+                pax_15 = %s,
+                pax_16 = %s,
+                Retry = %s
+            WHERE 
+                from_alternateId = %s AND 
+                to_alternateId = %s
+        """
+        
+        # Values to be updated in the table, using .get to safely retrieve values
+        values = (
+            data.get('pax_1'),
+            data.get('pax_2'),
+            data.get('pax_3'),
+            data.get('pax_4'),
+            data.get('pax_5'),
+            data.get('pax_6'),
+            data.get('pax_7'),
+            data.get('pax_8'),
+            data.get('pax_9'),
+            data.get('pax_10'),
+            data.get('pax_11'),
+            data.get('pax_12'),
+            data.get('pax_13'),
+            data.get('pax_14'),
+            data.get('pax_15'),
+            data.get('pax_16'),
+            data.get('Retry', 0),  # Default to 0 if 'Retry' key is missing
+            data.get('from_alternateId'),
+            data.get('to_alternateId')
+        )
+        
+        # Execute the query with the values
+        self.cursor.execute(query, values)
+        #self.conn.commit()
+
 
    
     def parser_data(self,row):
@@ -134,7 +192,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             stored_pax_values = []
             x_paxs = {i: [] for i in range(1, 17)}
             for i in range(1, 17):
-                print('Loop',i)
+                #print('Loop',i)
                 if i in stored_pax_values:
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
@@ -189,11 +247,10 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_14'] = lowest_values.get(14)
             output_data['pax_15'] = lowest_values.get(15)
             output_data['pax_16'] = lowest_values.get(16)
-
             return output_data
             
 
-        #self.conn.commit()  # Commit after each batch
+              # Commit after each batch
 
 
 
