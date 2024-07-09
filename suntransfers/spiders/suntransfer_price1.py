@@ -123,22 +123,22 @@ class SuntransferPriceSpider(scrapy.Spider):
             logger.error("Error executing query: %s", str(e))
             return []
         
-    def serialize_to_json(self,rows):
-        return json.dumps([row.to_dict() for row in rows], default=str)
+
 
     def parse(self,response):
 
         batch_number = 0
         while True:
             records = self.get_records_with_conditions(self.batch_size)
-            rows = self.serialize_to_json(records)
-            if not rows:
+            #import pdb;pdb.set_trace()
+            if not records:
                 break
             batch_number += 1
 
             
-            for i,row in enumerate(rows,1):
+            for i,row in enumerate(records,1):
                 try:
+
                     #import pdb;pdb.set_trace()
                     output_data = self.parser_data(row)
                     self.save_to_mysql(output_data,i)
@@ -184,10 +184,12 @@ class SuntransferPriceSpider(scrapy.Spider):
 
    
     def parser_data(self,row):
-
-            output_data = copy.deepcopy(row)
-            from_id = int(row['from_alternateId'])
-            to_id = int(row['to_alternateId'])
+            
+            from_alternateId = row.from_alternateId
+            to_alternateId = row.to_alternateId
+            output_data = {}
+            from_id = int(from_alternateId)
+            to_id = int(to_alternateId)
             aiport_code = row['CODE']
             url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
             temp_payload =   copy.deepcopy(self.payload)
@@ -265,6 +267,10 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_14'] = lowest_values.get(14)
             output_data['pax_15'] = lowest_values.get(15)
             output_data['pax_16'] = lowest_values.get(16)
+            output_data['from_alternateId'] = from_alternateId
+            output_data['to_alternateId'] = to_alternateId
+
+
             return output_data
             
 

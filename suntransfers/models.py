@@ -26,3 +26,5 @@ class Batch2Input1(Base):
     pax_16 = Column(Integer)
     Retry = Column(Integer, default=0)
     status = Column(Integer)
+
+   
