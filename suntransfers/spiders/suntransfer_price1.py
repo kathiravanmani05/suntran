@@ -1,4 +1,4 @@
-import scrapy
+import scrapy,json
 from scrapy.http import Request
 import pandas as pd
 from datetime import datetime
@@ -111,15 +111,27 @@ class SuntransferPriceSpider(scrapy.Spider):
         self.cursor.close()
         self.conn.close()
 
+    def get_records_with_conditions(self,batch_size):
+        try:
+            rows = session.query(Batch2Input1).filter(
+                Batch2Input1.status == None,
+                Batch2Input1.Retry < 6
+            ).limit(batch_size).all()
+            logger.info("Query executed successfully")
+            return rows
+        except Exception as e:
+            logger.error("Error executing query: %s", str(e))
+            return []
+        
+    def serialize_to_json(self,rows):
+        return json.dumps([row.to_dict() for row in rows], default=str)
+
     def parse(self,response):
 
         batch_number = 0
         while True:
-            query = "SELECT * FROM batch2_input1 WHERE status IS NULL AND Retry < %s LIMIT %s"
-            self.cursor.execute(query, (6, self.batch_size))
-
-            rows = self.cursor.fetchall() 
-
+            records = self.get_records_with_conditions(self.batch_size)
+            rows = self.serialize_to_json(records)
             if not rows:
                 break
             batch_number += 1
@@ -230,6 +242,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             else:
                 try:
                     retry = output_data.get('Retry')
+                    retry = int(retry)
                     retry = retry + 1
                     output_data['Retry'] = retry
                 except :
