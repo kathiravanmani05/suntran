@@ -24,7 +24,7 @@ session = Session()
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price"
+    name = "suntransfer_price_try1"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
@@ -115,7 +115,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         try:
             rows = session.query(Batch2Input1).filter(
                 Batch2Input1.status == None,
-                Batch2Input1.Retry < 6
+                Batch2Input1.Retry < 2
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
