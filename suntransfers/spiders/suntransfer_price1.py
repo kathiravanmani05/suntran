@@ -248,6 +248,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             if value_status:
                 output_data['status'] = True
             else:
+                output_data['status'] = None
                 try:
                     retry = int(retry)
                     retry = retry + 1
