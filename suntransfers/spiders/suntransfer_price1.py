@@ -112,8 +112,9 @@ class SuntransferPriceSpider(scrapy.Spider):
 
         batch_number = 0
         while True:
-            query = "SELECT * FROM batch2_input1 WHERE status IS NULL LIMIT %s"
-            self.cursor.execute(query, (self.batch_size,))
+            query = "SELECT * FROM batch2_input1 WHERE status IS NULL AND Retry < %s LIMIT %s"
+            self.cursor.execute(query, (6, self.batch_size))
+
             rows = self.cursor.fetchall() 
 
             if not rows:
