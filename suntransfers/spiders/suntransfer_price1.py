@@ -199,8 +199,6 @@ class SuntransferPriceSpider(scrapy.Spider):
             print(f"An error occurred: {e}")
         
 
-
-   
     def parser_data(self,row):
             
             from_alternateId = row.from_alternateId
