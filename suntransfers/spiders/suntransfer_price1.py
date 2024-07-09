@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import scoped_session
+
 
 from suntransfers.models import Batch2Input1
 # Assuming you already have an engine
@@ -23,7 +26,7 @@ engine = create_engine('mysql+pymysql://u413107573_suntransfer_nw:Suntransfer202
                         pool_recycle=900,     # Recycle connections every hour
                         pool_pre_ping=True  )
 Session = sessionmaker(bind=engine)
-session = Session()
+session = scoped_session(Session)
 
 
 
@@ -153,38 +156,50 @@ class SuntransferPriceSpider(scrapy.Spider):
             session.commit()
     
     def save_to_mysql(self,data,counter):
-        # Fetch the existing record
-        record = session.query(Batch2Input1).filter(
-            Batch2Input1.from_alternateId == data.get('from_alternateId'),
-            Batch2Input1.to_alternateId == data.get('to_alternateId')
-        ).one_or_none()
-        
-        if record:
-            # Update the fields
-            record.pax_1 = data.get('pax_1')
-            record.pax_2 = data.get('pax_2')
-            record.pax_3 = data.get('pax_3')
-            record.pax_4 = data.get('pax_4')
-            record.pax_5 = data.get('pax_5')
-            record.pax_6 = data.get('pax_6')
-            record.pax_7 = data.get('pax_7')
-            record.pax_8 = data.get('pax_8')
-            record.pax_9 = data.get('pax_9')
-            record.pax_10 = data.get('pax_10')
-            record.pax_11 = data.get('pax_11')
-            record.pax_12 = data.get('pax_12')
-            record.pax_13 = data.get('pax_13')
-            record.pax_14 = data.get('pax_14')
-            record.pax_15 = data.get('pax_15')
-            record.pax_16 = data.get('pax_16')
-            record.Retry = data.get('Retry', 0)
-            record.status = data.get('status')
-            
-            if counter >= self.batch_size:
-            # Commit the transaction
-                session.commit()
-        else:
-            print("Record not found.")
+
+        try:
+
+            with session.no_autoflush:
+                # Fetch the existing record
+                record = session.query(Batch2Input1).filter(
+                    Batch2Input1.from_alternateId == data.get('from_alternateId'),
+                    Batch2Input1.to_alternateId == data.get('to_alternateId')
+                ).one_or_none()
+                
+                if record:
+                    # Update the fields
+                    record.pax_1 = data.get('pax_1')
+                    record.pax_2 = data.get('pax_2')
+                    record.pax_3 = data.get('pax_3')
+                    record.pax_4 = data.get('pax_4')
+                    record.pax_5 = data.get('pax_5')
+                    record.pax_6 = data.get('pax_6')
+                    record.pax_7 = data.get('pax_7')
+                    record.pax_8 = data.get('pax_8')
+                    record.pax_9 = data.get('pax_9')
+                    record.pax_10 = data.get('pax_10')
+                    record.pax_11 = data.get('pax_11')
+                    record.pax_12 = data.get('pax_12')
+                    record.pax_13 = data.get('pax_13')
+                    record.pax_14 = data.get('pax_14')
+                    record.pax_15 = data.get('pax_15')
+                    record.pax_16 = data.get('pax_16')
+                    record.Retry = data.get('Retry', 0)
+                    record.status = data.get('status')
+                    
+                    if counter >= self.batch_size:
+                    # Commit the transaction
+                        session.commit()
+                else:
+                    print("Record not found.")
+        except OperationalError as e:
+            session.rollback()
+            print(f"OperationalError encountered: {e}")
+            raise
+        except Exception as e:
+            session.rollback()
+            print(f"An error occurred: {e}")
+        raise
 
 
    
