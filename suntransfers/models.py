@@ -8,6 +8,7 @@ class Batch2Input1(Base):
     
     from_alternateId = Column(String, primary_key=True)
     to_alternateId = Column(String, primary_key=True)
+    CODE =  Column(String)
     pax_1 = Column(Integer)
     pax_2 = Column(Integer)
     pax_3 = Column(Integer)

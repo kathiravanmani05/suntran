@@ -144,7 +144,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
-                    logger.error(f"Error in row  {row}")
+                    
+                    logger.error(f"Error in row  {row.route_start}_{row.route_dest} {e}")
             session.commit()
     
     def save_to_mysql(self,data,counter):
@@ -187,10 +188,15 @@ class SuntransferPriceSpider(scrapy.Spider):
             
             from_alternateId = row.from_alternateId
             to_alternateId = row.to_alternateId
+
+
+            route_start = row.route_start
+            route_dest = row.route_dest
+            retry = row.Retry
             output_data = {}
             from_id = int(from_alternateId)
             to_id = int(to_alternateId)
-            aiport_code = row['CODE']
+            aiport_code = row.CODE
             url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
             temp_payload =   copy.deepcopy(self.payload)
 
@@ -243,7 +249,6 @@ class SuntransferPriceSpider(scrapy.Spider):
                 output_data['status'] = True
             else:
                 try:
-                    retry = output_data.get('Retry')
                     retry = int(retry)
                     retry = retry + 1
                     output_data['Retry'] = retry
@@ -269,6 +274,8 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_16'] = lowest_values.get(16)
             output_data['from_alternateId'] = from_alternateId
             output_data['to_alternateId'] = to_alternateId
+            output_data['route_start'] = route_start
+            output_data['route_dest'] = route_dest
 
 
             return output_data
