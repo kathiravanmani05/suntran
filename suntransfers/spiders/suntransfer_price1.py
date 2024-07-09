@@ -9,6 +9,9 @@ import copy
 from scrapy import Selector
 import mysql.connector
 
+import logging
+logger = logging.getLogger(__name__)
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -123,10 +126,13 @@ class SuntransferPriceSpider(scrapy.Spider):
 
             
             for i,row in enumerate(rows,1):
-                #import pdb;pdb.set_trace()
-                output_data = self.parser_data(row)
-                self.save_to_mysql(output_data,i)
-                yield output_data
+                try:
+                    #import pdb;pdb.set_trace()
+                    output_data = self.parser_data(row)
+                    self.save_to_mysql(output_data,i)
+                    yield output_data
+                except Exception as e:
+                    logger.error(f"Error in row  {row}")
             session.commit()
     
     def save_to_mysql(self,data,counter):
