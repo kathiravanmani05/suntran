@@ -9,6 +9,15 @@ import copy
 from scrapy import Selector
 import mysql.connector
 
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+
+from suntransfers.models import Batch2Input1
+# Assuming you already have an engine
+engine = create_engine('mysql+pymysql://u413107573_suntransfer_nw:Suntransfer2024@srv945.hstgr.io/u413107573_suntransfer_nw')
+Session = sessionmaker(bind=engine)
+session = Session()
+
 
 
 class SuntransferPriceSpider(scrapy.Spider):
@@ -81,12 +90,13 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 10
+        self.batch_size = 20
         self.mysql_config = {
             'user': 'u413107573_suntransfer_nw',
             'password': 'Suntransfer2024',
             'host': 'srv945.hstgr.io',
-            'database': 'u413107573_suntransfer_nw'
+            'database': 'u413107573_suntransfer_nw',
+            'connect_timeout': 28800,
         }
         self.connect_mysql()
 
@@ -99,81 +109,58 @@ class SuntransferPriceSpider(scrapy.Spider):
         self.conn.close()
 
     def parse(self,response):
-        query = "SELECT * FROM batch2_input1"
-        self.cursor.execute(query)
+
         batch_number = 0
         while True:
-            rows = self.cursor.fetchmany(self.batch_size)
-
-            if batch_number == 1:
-                break
+            query = "SELECT * FROM batch2_input1 WHERE status IS NULL LIMIT %s"
+            self.cursor.execute(query, (self.batch_size,))
+            rows = self.cursor.fetchall() 
 
             if not rows:
                 break
             batch_number += 1
-            # Simulate scraping data for each batch
-            for row in rows:
+
+            
+            for i,row in enumerate(rows,1):
                 #import pdb;pdb.set_trace()
                 output_data = self.parser_data(row)
-                # Process output_data as needed (e.g., save to database)
-                # Example: self.save_to_database(output_data)
-                self.save_to_mysql(output_data)
+                self.save_to_mysql(output_data,i)
                 yield output_data
-            self.conn.commit()
+            session.commit()
     
-    def save_to_mysql(self, data):
-        # Update query with placeholders for the values to be updated
-        query = """
-            UPDATE your_processed_table
-            SET 
-                pax_1 = %s,
-                pax_2 = %s,
-                pax_3 = %s,
-                pax_4 = %s,
-                pax_5 = %s,
-                pax_6 = %s,
-                pax_7 = %s,
-                pax_8 = %s,
-                pax_9 = %s,
-                pax_10 = %s,
-                pax_11 = %s,
-                pax_12 = %s,
-                pax_13 = %s,
-                pax_14 = %s,
-                pax_15 = %s,
-                pax_16 = %s,
-                Retry = %s
-            WHERE 
-                from_alternateId = %s AND 
-                to_alternateId = %s
-        """
+    def save_to_mysql(self,data,counter):
+        # Fetch the existing record
+        record = session.query(Batch2Input1).filter(
+            Batch2Input1.from_alternateId == data.get('from_alternateId'),
+            Batch2Input1.to_alternateId == data.get('to_alternateId')
+        ).one_or_none()
         
-        # Values to be updated in the table, using .get to safely retrieve values
-        values = (
-            data.get('pax_1'),
-            data.get('pax_2'),
-            data.get('pax_3'),
-            data.get('pax_4'),
-            data.get('pax_5'),
-            data.get('pax_6'),
-            data.get('pax_7'),
-            data.get('pax_8'),
-            data.get('pax_9'),
-            data.get('pax_10'),
-            data.get('pax_11'),
-            data.get('pax_12'),
-            data.get('pax_13'),
-            data.get('pax_14'),
-            data.get('pax_15'),
-            data.get('pax_16'),
-            data.get('Retry', 0),  # Default to 0 if 'Retry' key is missing
-            data.get('from_alternateId'),
-            data.get('to_alternateId')
-        )
-        
-        # Execute the query with the values
-        self.cursor.execute(query, values)
-        #self.conn.commit()
+        if record:
+            # Update the fields
+            record.pax_1 = data.get('pax_1')
+            record.pax_2 = data.get('pax_2')
+            record.pax_3 = data.get('pax_3')
+            record.pax_4 = data.get('pax_4')
+            record.pax_5 = data.get('pax_5')
+            record.pax_6 = data.get('pax_6')
+            record.pax_7 = data.get('pax_7')
+            record.pax_8 = data.get('pax_8')
+            record.pax_9 = data.get('pax_9')
+            record.pax_10 = data.get('pax_10')
+            record.pax_11 = data.get('pax_11')
+            record.pax_12 = data.get('pax_12')
+            record.pax_13 = data.get('pax_13')
+            record.pax_14 = data.get('pax_14')
+            record.pax_15 = data.get('pax_15')
+            record.pax_16 = data.get('pax_16')
+            record.Retry = data.get('Retry', 0)
+            record.status = data.get('status')
+            
+            if counter >= self.batch_size:
+            # Commit the transaction
+                session.commit()
+        else:
+            print("Record not found.")
 
 
    
@@ -224,12 +211,23 @@ class SuntransferPriceSpider(scrapy.Spider):
                                 x_paxs[int(pax)].append(price)
                 
             lowest_values = {}
-            
+            value_status = False
             for passengers, prices in x_paxs.items():
                 if prices:
-                    lowest_values[passengers] = min(prices)  # Find the minimum price
+                    lowest_values[passengers] = min(prices)
+                    value_status = True  # Find the minimum price
                 else:
                     lowest_values[passengers] = None
+            if value_status:
+                output_data['status'] = True
+            else:
+                try:
+                    retry = output_data.get('Retry')
+                    retry = retry + 1
+                    output_data['Retry'] = retry
+                except :
+                    output_data['Retry'] = 1
+
 
             output_data['pax_1'] = lowest_values.get(1)
             output_data['pax_2'] = lowest_values.get(2)
