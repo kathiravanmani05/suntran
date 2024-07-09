@@ -90,7 +90,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 20
+        self.batch_size = 100
         self.mysql_config = {
             'user': 'u413107573_suntransfer_nw',
             'password': 'Suntransfer2024',
