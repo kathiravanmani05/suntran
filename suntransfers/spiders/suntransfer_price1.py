@@ -17,7 +17,11 @@ from sqlalchemy import create_engine
 
 from suntransfers.models import Batch2Input1
 # Assuming you already have an engine
-engine = create_engine('mysql+pymysql://u413107573_suntransfer_nw:Suntransfer2024@srv945.hstgr.io/u413107573_suntransfer_nw')
+engine = create_engine('mysql+pymysql://u413107573_suntransfer_nw:Suntransfer2024@srv945.hstgr.io/u413107573_suntransfer_nw',
+                        pool_size=10,          # Adjust pool size as needed
+                        max_overflow=20,       # Adjust max overflow as needed
+                        pool_recycle=900,     # Recycle connections every hour
+                        pool_pre_ping=True  )
 Session = sessionmaker(bind=engine)
 session = Session()
 
