@@ -187,19 +187,17 @@ class SuntransferPriceSpider(scrapy.Spider):
                     record.Retry = data.get('Retry', 0)
                     record.status = data.get('status')
                     
-                    if counter >= self.batch_size:
-                    # Commit the transaction
-                        session.commit()
+      
+                    session.commit()
                 else:
                     print("Record not found.")
         except OperationalError as e:
             session.rollback()
             print(f"OperationalError encountered: {e}")
-            raise
         except Exception as e:
             session.rollback()
             print(f"An error occurred: {e}")
-        raise
+        
 
 
    
