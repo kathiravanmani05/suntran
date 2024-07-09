@@ -5,4 +5,7 @@ requests
 pandas
 openpyxl
 mysql-connector-python
+sqlalchemy
+pymysql
+
 
