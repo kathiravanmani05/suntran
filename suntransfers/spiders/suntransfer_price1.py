@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import scoped_session
-from scrapy.crawler import proxies
+#from scrapy.crawler import proxies
 
 from suntransfers.models import Batch2Input1
 # Assuming you already have an engine
