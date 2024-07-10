@@ -93,7 +93,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 100
+        self.batch_size = 30
         self.item_count = 0
         self.mysql_config = {
             'user': 'u413107573_suntransfer_nw',
@@ -138,15 +138,10 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data, i)
                     yield output_data
 
-                    self.item_count += 1
-                    if self.item_count >= 30:
-                        logger.info("Reached 320 items. Pausing for a minute...")
-                        time.sleep(30)
-                        self.item_count = 0
-                        break  # Break out of the inner loop to restart the spider
-
+                    
                 except Exception as e:
                     logger.error(f"Error in row {row.route_start}_{row.route_dest}: {e}")
+            time.sleep(60)
             session.commit()
 
     def save_to_mysql(self, data, counter):
