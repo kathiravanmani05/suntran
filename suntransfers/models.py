@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-class Batch2Input1(Base):
+class batch1(Base):
     __tablename__ = 'batch1'
     
     from_alternateId = Column(String, primary_key=True)
