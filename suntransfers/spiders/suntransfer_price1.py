@@ -101,13 +101,15 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 7000
+        self.batch_size = 2000
 
     def get_records_with_conditions(self,batch_size):
         try:
             rows = session.query(batch1).filter(
                 batch1.status == None,
-                batch1.Retry < 2
+                batch1.Retry < 2,
+                batch1.from_alternateId.isnot(None),
+                batch1.to_alternateId.isnot(None)
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
