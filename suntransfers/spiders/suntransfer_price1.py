@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import io
 import urllib.parse
-import requests
+import requests,time
 import copy
 from scrapy import Selector
 import mysql.connector
@@ -101,23 +101,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 100
-        self.mysql_config = {
-            'user': 'u413107573_suntransfer_nw',
-            'password': 'Suntransfer2024',
-            'host': 'srv945.hstgr.io',
-            'database': 'u413107573_suntransfer_nw',
-            'connect_timeout': 28800,
-        }
-        self.connect_mysql()
-
-    def connect_mysql(self):
-        self.conn = mysql.connector.connect(**self.mysql_config)
-        self.cursor = self.conn.cursor(dictionary=True)
-
-    def close_mysql(self):
-        self.cursor.close()
-        self.conn.close()
+        self.batch_size = 30
 
     def get_records_with_conditions(self,batch_size):
         try:
@@ -154,6 +138,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 except Exception as e:
                     
                     logger.error(f"Error in row  {row.route_start}_{row.route_dest} {e}")
+            time.sleep(30)
             session.commit()
     
     def save_to_mysql(self,data,counter):
