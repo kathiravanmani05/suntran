@@ -18,13 +18,14 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import scoped_session
 
 
-from suntransfers.models import Batch2Input1
+from suntransfers.models import batch1
 # Assuming you already have an engine
-engine = create_engine('mysql+pymysql://u413107573_suntransfer_nw:Suntransfer2024@srv945.hstgr.io/u413107573_suntransfer_nw',
-                        pool_size=10,          # Adjust pool size as needed
-                        max_overflow=20,       # Adjust max overflow as needed
-                        pool_recycle=900,     # Recycle connections every hour
-                        pool_pre_ping=True  )
+user = 'suntransfer1'
+password = 'suntransfer1'
+host = '34.45.193.112'
+port = '3306'  # Default port for MySQL
+database = 'suntransfer'
+engine = create_engine( f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'  )
 Session = sessionmaker(bind=engine)
 session = scoped_session(Session)
 
@@ -120,9 +121,9 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def get_records_with_conditions(self,batch_size):
         try:
-            rows = session.query(Batch2Input1).filter(
-                Batch2Input1.status == None,
-                Batch2Input1.Retry < 2
+            rows = session.query(batch1).filter(
+                batch1.status == None,
+                batch1.Retry < 2
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
@@ -161,9 +162,9 @@ class SuntransferPriceSpider(scrapy.Spider):
 
             with session.no_autoflush:
                 # Fetch the existing record
-                record = session.query(Batch2Input1).filter(
-                    Batch2Input1.from_alternateId == data.get('from_alternateId'),
-                    Batch2Input1.to_alternateId == data.get('to_alternateId')
+                record = session.query(batch1).filter(
+                    batch1.from_alternateId == data.get('from_alternateId'),
+                    batch1.to_alternateId == data.get('to_alternateId')
                 ).one_or_none()
                 
                 if record:
