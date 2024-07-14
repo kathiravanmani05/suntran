@@ -213,9 +213,13 @@ class SuntransferPriceSpider(scrapy.Spider):
                 temp_payload['booking[f_pax]'] = str(i)
                 temp_payload['booking[f_adults]'] = str(i)
 
-                
+                proxies={
+                        "http": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/",
+                        "https": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/"
+                    }
+
             
-                data = requests.post(url,headers=self.headers,data=temp_payload)
+                data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies)
                 
                 response = Selector(text=data.text)
                 no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
