@@ -101,7 +101,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 30
+        self.batch_size = 7000
 
     def get_records_with_conditions(self,batch_size):
         try:
