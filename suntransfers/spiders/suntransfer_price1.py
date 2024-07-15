@@ -140,7 +140,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 except Exception as e:
                     
                     logger.error(f"Error in row  {row.route_start}_{row.route_dest} {e}")
-            time.sleep(30)
+            
             session.commit()
     
     def save_to_mysql(self,data,counter):
