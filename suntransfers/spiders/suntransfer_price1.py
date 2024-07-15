@@ -32,7 +32,7 @@ session = scoped_session(Session)
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_try1"
+    name = "suntransfer_price_try11"
     #allowed_domains = ["www.suntransfers.com"]
     start_urls = ["https://www.suntransfers.com/"]
 
