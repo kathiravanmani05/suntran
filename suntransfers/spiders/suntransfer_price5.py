@@ -103,8 +103,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                 Route.retry < 2,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),
-                Route.serial_no >= 1,
-                Route.serial_no <= 1000
+                Route.serial_no >= 4000,
+                Route.serial_no <= 5000
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
