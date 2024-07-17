@@ -1,16 +1,25 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, Sequence, UniqueConstraint
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
-class batch1(Base):
-    __tablename__ = 'batch1'
-    
-    from_alternateId = Column(String, primary_key=True)
-    to_alternateId = Column(String, primary_key=True)
-    CODE =  Column(String)
-    route_start =  Column(String)
-    route_dest =  Column(String)
+class Route(Base):
+    __tablename__ = 'routes'
+
+
+    serial_no = Column(Integer, Sequence('route_id_seq'), autoincrement=True,primary_key=True)
+    Competitor = Column(String(100))
+    key = Column(String(100))
+    status = Column(Boolean)
+    retry = Column(Integer,default=0)
+    Route_start = Column(String(255))
+    from_alternateId = Column(Integer)
+    code = Column(String(10))
+    Route_dest = Column(String(255))
+    to_alternateId = Column(Integer)
     pax_1 = Column(Integer)
     pax_2 = Column(Integer)
     pax_3 = Column(Integer)
@@ -27,7 +36,6 @@ class batch1(Base):
     pax_14 = Column(Integer)
     pax_15 = Column(Integer)
     pax_16 = Column(Integer)
-    Retry = Column(Integer, default=0)
-    status = Column(Integer)
 
+    __table_args__ = (UniqueConstraint('key', name='uq_key'),)
    

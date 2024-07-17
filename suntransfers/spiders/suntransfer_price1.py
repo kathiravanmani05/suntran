@@ -1,13 +1,8 @@
-import scrapy,json
-from scrapy.http import Request
-import pandas as pd
+import scrapy
 from datetime import datetime
-import io
-import urllib.parse
-import requests,time
+import requests
 import copy
 from scrapy import Selector
-import mysql.connector
 
 import logging
 logger = logging.getLogger(__name__)
@@ -18,7 +13,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import scoped_session
 
 
-from suntransfers.models import batch1
+from suntransfers.models import Route
 # Assuming you already have an engine
 user = 'suntransfer1'
 password = 'suntransfer1'
@@ -32,10 +27,8 @@ session = scoped_session(Session)
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_try11"
-    #allowed_domains = ["www.suntransfers.com"]
+    name = "suntransfer_price_try1"
     start_urls = ["https://www.suntransfers.com/"]
-
     input_date = "23-07-2024 10:00"
 
     # Parse the input string into a datetime object
@@ -101,15 +94,17 @@ class SuntransferPriceSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(SuntransferPriceSpider, self).__init__(*args, **kwargs)
-        self.batch_size = 2000
+        self.batch_size = 100
 
     def get_records_with_conditions(self,batch_size):
         try:
-            rows = session.query(batch1).filter(
-                batch1.status == None,
-                batch1.Retry < 2,
-                batch1.from_alternateId.isnot(None),
-                batch1.to_alternateId.isnot(None)
+            rows = session.query(Route).filter(
+                Route.status == 0,
+                Route.retry < 2,
+                Route.from_alternateId.isnot(None),
+                Route.to_alternateId.isnot(None),
+                Route.serial_no >= 1,
+                Route.serial_no <= 10
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
@@ -124,7 +119,6 @@ class SuntransferPriceSpider(scrapy.Spider):
         batch_number = 0
         while True:
             records = self.get_records_with_conditions(self.batch_size)
-            #import pdb;pdb.set_trace()
             if not records:
                 break
             batch_number += 1
@@ -132,26 +126,21 @@ class SuntransferPriceSpider(scrapy.Spider):
             
             for i,row in enumerate(records,1):
                 try:
-
-                    #import pdb;pdb.set_trace()
                     output_data = self.parser_data(row)
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
-                    
-                    logger.error(f"Error in row  {row.route_start}_{row.route_dest} {e}")
+                    logger.error(f"Error in row  {row.Route_start}_{row.Route_dest} {e}")
             
-            session.commit()
     
     def save_to_mysql(self,data,counter):
 
         try:
-
             with session.no_autoflush:
                 # Fetch the existing record
-                record = session.query(batch1).filter(
-                    batch1.from_alternateId == data.get('from_alternateId'),
-                    batch1.to_alternateId == data.get('to_alternateId')
+                record = session.query(Route).filter(
+                    Route.from_alternateId == data.get('from_alternateId'),
+                    Route.to_alternateId == data.get('to_alternateId')
                 ).one_or_none()
                 
                 if record:
@@ -172,34 +161,25 @@ class SuntransferPriceSpider(scrapy.Spider):
                     record.pax_14 = data.get('pax_14')
                     record.pax_15 = data.get('pax_15')
                     record.pax_16 = data.get('pax_16')
-                    record.Retry = data.get('Retry', 0)
+                    record.retry = data.get('retry', 0)
                     record.status = data.get('status')
-                    
-      
                     session.commit()
                 else:
                     print("Record not found.")
-        except OperationalError as e:
-            session.rollback()
-            print(f"OperationalError encountered: {e}")
         except Exception as e:
             session.rollback()
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
         
 
     def parser_data(self,row):
             
             from_alternateId = row.from_alternateId
             to_alternateId = row.to_alternateId
-
-
-            route_start = row.route_start
-            route_dest = row.route_dest
-            retry = row.Retry
+            retry = row.retry
             output_data = {}
             from_id = int(from_alternateId)
             to_id = int(to_alternateId)
-            aiport_code = row.CODE
+            aiport_code = row.code
             url = f"https://booking.suntransfers.com/booking?step=1&iata={aiport_code}&fromNoMatches=0"
             temp_payload =   copy.deepcopy(self.payload)
 
@@ -209,7 +189,6 @@ class SuntransferPriceSpider(scrapy.Spider):
             stored_pax_values = []
             x_paxs = {i: [] for i in range(1, 17)}
             for i in range(1, 17):
-                #print('Loop',i)
                 if i in stored_pax_values:
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
@@ -259,9 +238,9 @@ class SuntransferPriceSpider(scrapy.Spider):
                 try:
                     retry = int(retry)
                     retry = retry + 1
-                    output_data['Retry'] = retry
+                    output_data['retry'] = retry
                 except :
-                    output_data['Retry'] = 1
+                    output_data['retry'] = 1
 
 
             output_data['pax_1'] = lowest_values.get(1)
@@ -282,14 +261,10 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_16'] = lowest_values.get(16)
             output_data['from_alternateId'] = from_alternateId
             output_data['to_alternateId'] = to_alternateId
-            output_data['route_start'] = route_start
-            output_data['route_dest'] = route_dest
-
-
             return output_data
             
 
-              # Commit after each batch
+
 
 
 
