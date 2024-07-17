@@ -27,7 +27,7 @@ session = scoped_session(Session)
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_try1"
+    name = "suntransfer_price_try5"
     start_urls = ["https://www.suntransfers.com/"]
     input_date = "23-07-2024 10:00"
 
