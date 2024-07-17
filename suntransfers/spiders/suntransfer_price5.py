@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import scoped_session
-
+from sqlalchemy import or_
 
 from suntransfers.models import Route
 # Assuming you already have an engine
@@ -99,7 +99,7 @@ class SuntransferPriceSpider(scrapy.Spider):
     def get_records_with_conditions(self,batch_size):
         try:
             rows = session.query(Route).filter(
-                Route.status == 0,
+                or_(Route.status == 0, Route.status.is_(None)),
                 Route.retry < 2,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),

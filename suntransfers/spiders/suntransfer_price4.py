@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 import copy
 from scrapy import Selector
-
+from sqlalchemy import or_
 import logging
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class SuntransferPriceSpider(scrapy.Spider):
     def get_records_with_conditions(self,batch_size):
         try:
             rows = session.query(Route).filter(
-                Route.status == 0,
+                or_(Route.status == 0, Route.status.is_(None)),
                 Route.retry < 2,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),
