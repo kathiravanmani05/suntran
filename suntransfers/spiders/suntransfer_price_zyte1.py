@@ -201,12 +201,13 @@ class SuntransferPriceSpider(scrapy.Spider):
                         "https": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/"
                     } '''
 
-                zyte_proxy_api_key = '0538c465481b43dcadb5bd9404436e12'
-                zyte_proxy_url = f"http://{zyte_proxy_api_key}:@proxy.zyte.com:8011"
-                proxies = {"http": zyte_proxy_url}
+                proxies = proxies={
+                    "http": "http://0538c465481b43dcadb5bd9404436e12:@api.zyte.com:8011/",
+                    "https": "http://0538c465481b43dcadb5bd9404436e12:@api.zyte.com:8011/",
+                }
             
-                data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies)
-                
+                data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies,verify='zyte-ca.crt')
+            
                 response = Selector(text=data.text)
                 no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
                 if no_results:
