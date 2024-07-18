@@ -100,7 +100,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         try:
             rows = session.query(Route).filter(
                 or_(Route.status == 0, Route.status.is_(None)),
-                Route.retry < 2,
+                Route.retry < 3,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),
                 Route.serial_no >= 3000,
@@ -130,6 +130,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
+                    
                     logger.error(f"Error in row  {row.Route_start}_{row.Route_dest} {e}")
             
     
@@ -140,7 +141,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                 # Fetch the existing record
                 record = session.query(Route).filter(
                     Route.from_alternateId == data.get('from_alternateId'),
-                    Route.to_alternateId == data.get('to_alternateId')
+                    Route.to_alternateId == data.get('to_alternateId'),
+                    Route.code == data.get('code')
                 ).one_or_none()
                 
                 if record:
@@ -167,6 +169,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 else:
                     print("Record not found.")
         except Exception as e:
+            
             session.rollback()
             logger.error(f"An error occurred: {e}")
         
@@ -188,7 +191,8 @@ class SuntransferPriceSpider(scrapy.Spider):
 
             stored_pax_values = []
             x_paxs = {i: [] for i in range(1, 17)}
-            for i in range(1, 17):
+            #for i in range(2, 13,2):
+            for i in [2,4,6,8,10,12,16]:
                 if i in stored_pax_values:
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
@@ -207,7 +211,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                 if no_results:
                     break
                 vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-
+                if i==2 and len(vehicle_lst) == 0:
+                    break
                 
                 for vehicle in vehicle_lst:
                     pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
@@ -219,7 +224,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                             price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
                             print(pax,price)
                             if price:
-                                price = price.replace('€', '').strip()
+                                price = price.replace('€', '').replace(',', '').strip()
                                 
                                 x_paxs[int(pax)].append(price)
                 
@@ -261,6 +266,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_16'] = lowest_values.get(16)
             output_data['from_alternateId'] = from_alternateId
             output_data['to_alternateId'] = to_alternateId
+            output_data['code'] = aiport_code
             return output_data
             
 
