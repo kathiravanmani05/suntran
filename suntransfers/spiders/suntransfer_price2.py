@@ -130,6 +130,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
+                    
                     logger.error(f"Error in row  {row.Route_start}_{row.Route_dest} {e}")
             
     
@@ -187,8 +188,9 @@ class SuntransferPriceSpider(scrapy.Spider):
             temp_payload['booking[f_arrival]'] = to_id
 
             stored_pax_values = []
-            x_paxs = {i: [] for i in range(1, 12,2)}
-            for i in range(1, 17):
+            x_paxs = {i: [] for i in range(1, 17)}
+            #for i in range(2, 13,2):
+            for i in [2,4,6,8,10,12,16]:
                 if i in stored_pax_values:
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
