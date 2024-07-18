@@ -130,7 +130,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
-                    import pdb;pdb.set_trace()
+                    
                     logger.error(f"Error in row  {row.Route_start}_{row.Route_dest} {e}")
             
     
