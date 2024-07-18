@@ -100,7 +100,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         try:
             rows = session.query(Route).filter(
                 or_(Route.status == 0, Route.status.is_(None)),
-                Route.retry < 2,
+                Route.retry < 3,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),
                 Route.serial_no >= 1000,
