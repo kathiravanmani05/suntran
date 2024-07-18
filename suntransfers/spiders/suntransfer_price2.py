@@ -187,7 +187,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             temp_payload['booking[f_arrival]'] = to_id
 
             stored_pax_values = []
-            x_paxs = {i: [] for i in range(1, 17)}
+            x_paxs = {i: [] for i in range(1, 12,2)}
             for i in range(1, 17):
                 if i in stored_pax_values:
                     continue
