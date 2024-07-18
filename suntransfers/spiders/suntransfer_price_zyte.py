@@ -203,7 +203,7 @@ class SuntransferPriceSpider(scrapy.Spider):
 
                 zyte_proxy_api_key = 'eeccf057084145cc9ea49bbf22e8bbc3'
                 zyte_proxy_url = f"http://{zyte_proxy_api_key}:@proxy.zyte.com:8011"
-                proxies = {"http": zyte_proxy_url, "https": zyte_proxy_url}
+                proxies = {"http": zyte_proxy_url}
             
                 data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies)
                 
