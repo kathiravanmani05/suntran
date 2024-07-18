@@ -168,6 +168,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 else:
                     print("Record not found.")
         except Exception as e:
+            import pdb;pdb.set_trace()
             session.rollback()
             logger.error(f"An error occurred: {e}")
         
@@ -221,7 +222,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                             price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
                             print(pax,price)
                             if price:
-                                price = price.replace('€', '').strip()
+                                price = price.replace('€', '').replace(',', '').strip()
                                 
                                 x_paxs[int(pax)].append(price)
                 
