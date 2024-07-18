@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 import copy
 from scrapy import Selector
-
+from sqlalchemy import or_
 import logging
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ database = 'suntransfer'
 engine = create_engine( f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'  )
 Session = sessionmaker(bind=engine)
 session = scoped_session(Session)
-from sqlalchemy import or_
+
 
 
 class SuntransferPriceSpider(scrapy.Spider):
@@ -100,7 +100,7 @@ class SuntransferPriceSpider(scrapy.Spider):
         try:
             rows = session.query(Route).filter(
                 or_(Route.status == 0, Route.status.is_(None)),
-                Route.retry < 2,
+                Route.retry < 3,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None),
                 Route.serial_no >= 2000,
@@ -130,6 +130,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     self.save_to_mysql(output_data,i)
                     yield output_data
                 except Exception as e:
+                    
                     logger.error(f"Error in row  {row.Route_start}_{row.Route_dest} {e}")
             
     
@@ -167,6 +168,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 else:
                     print("Record not found.")
         except Exception as e:
+            
             session.rollback()
             logger.error(f"An error occurred: {e}")
         
@@ -188,7 +190,8 @@ class SuntransferPriceSpider(scrapy.Spider):
 
             stored_pax_values = []
             x_paxs = {i: [] for i in range(1, 17)}
-            for i in range(1, 17):
+            #for i in range(2, 13,2):
+            for i in [2,4,6,8,10,12,16]:
                 if i in stored_pax_values:
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
@@ -219,7 +222,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                             price = vehicle.xpath('.//*[@class="c-pricing__pricing"]//text()[contains(.,"€")]').get()
                             print(pax,price)
                             if price:
-                                price = price.replace('€', '').strip()
+                                price = price.replace('€', '').replace(',', '').strip()
                                 
                                 x_paxs[int(pax)].append(price)
                 
