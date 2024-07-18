@@ -142,7 +142,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                 record = session.query(Route).filter(
                     Route.from_alternateId == data.get('from_alternateId'),
                     Route.to_alternateId == data.get('to_alternateId'),
-                    Route.code == data.get('to_alternateId')
+                    Route.code == data.get('code')
                 ).one_or_none()
                 
                 if record:

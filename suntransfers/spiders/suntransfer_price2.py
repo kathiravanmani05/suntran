@@ -141,7 +141,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                 # Fetch the existing record
                 record = session.query(Route).filter(
                     Route.from_alternateId == data.get('from_alternateId'),
-                    Route.to_alternateId == data.get('to_alternateId')
+                    Route.to_alternateId == data.get('to_alternateId'),
+                    Route.code == data.get('code')
                 ).one_or_none()
                 
                 if record:
@@ -264,6 +265,7 @@ class SuntransferPriceSpider(scrapy.Spider):
             output_data['pax_16'] = lowest_values.get(16)
             output_data['from_alternateId'] = from_alternateId
             output_data['to_alternateId'] = to_alternateId
+            output_data['code'] = aiport_code
             return output_data
             
 
