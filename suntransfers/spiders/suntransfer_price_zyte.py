@@ -206,7 +206,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                     "https": "http://0538c465481b43dcadb5bd9404436e12:@api.zyte.com:8011/",
                 }
             
-                data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies,verify='zyte-ca.crt')
+                data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies,verify=False)
             
                 response = Selector(text=data.text)
                 no_results = response.xpath('//text()[contains(.,"We are very sorry, unfortunately we are not able to offer you")]').get()
