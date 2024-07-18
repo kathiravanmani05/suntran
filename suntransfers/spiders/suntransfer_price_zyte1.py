@@ -27,7 +27,7 @@ session = scoped_session(Session)
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_try4"
+    name = "suntransfer_price_zyte_1"
     start_urls = ["https://www.suntransfers.com/"]
     input_date = "23-07-2024 10:00"
 
@@ -99,12 +99,10 @@ class SuntransferPriceSpider(scrapy.Spider):
     def get_records_with_conditions(self,batch_size):
         try:
             rows = session.query(Route).filter(
-                or_(Route.status == 0, Route.status.is_(None)),
-                Route.retry < 3,
+                Route.status == 0,
+                Route.retry == 1,
                 Route.from_alternateId.isnot(None),
-                Route.to_alternateId.isnot(None),
-                Route.serial_no >= 3000,
-                Route.serial_no <= 4000
+                Route.to_alternateId.isnot(None)
             ).limit(batch_size).all()
             logger.info("Query executed successfully")
             return rows
@@ -197,12 +195,15 @@ class SuntransferPriceSpider(scrapy.Spider):
                     continue
                 temp_payload['booking[f_pax]'] = str(i)
                 temp_payload['booking[f_adults]'] = str(i)
-
+                '''
                 proxies={
                         "http": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/",
                         "https": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/"
-                    }
+                    } '''
 
+                zyte_proxy_api_key = '0538c465481b43dcadb5bd9404436e12'
+                zyte_proxy_url = f"http://{zyte_proxy_api_key}:@proxy.zyte.com:8011"
+                proxies = {"http": zyte_proxy_url}
             
                 data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies)
                 
@@ -213,7 +214,6 @@ class SuntransferPriceSpider(scrapy.Spider):
                 vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
                 if i==2 and len(vehicle_lst) == 0:
                     break
-                
                 for vehicle in vehicle_lst:
                     pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
                     if pax:

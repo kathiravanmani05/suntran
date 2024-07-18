@@ -27,7 +27,7 @@ session = scoped_session(Session)
 
 
 class SuntransferPriceSpider(scrapy.Spider):
-    name = "suntransfer_price_zyte"
+    name = "suntransfer_price_zyte_0"
     start_urls = ["https://www.suntransfers.com/"]
     input_date = "23-07-2024 10:00"
 
@@ -201,7 +201,7 @@ class SuntransferPriceSpider(scrapy.Spider):
                         "https": "http://ybgfjkyz-rotate:gvxsoym3tw9o@p.webshare.io:80/"
                     } '''
 
-                zyte_proxy_api_key = 'eeccf057084145cc9ea49bbf22e8bbc3'
+                zyte_proxy_api_key = '0538c465481b43dcadb5bd9404436e12'
                 zyte_proxy_url = f"http://{zyte_proxy_api_key}:@proxy.zyte.com:8011"
                 proxies = {"http": zyte_proxy_url}
             

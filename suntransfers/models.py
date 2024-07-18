@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 class Route(Base):
-    __tablename__ = 'routes'
+    __tablename__ = 'routes_master'
 
 
     serial_no = Column(Integer, Sequence('route_id_seq'), autoincrement=True,primary_key=True)
