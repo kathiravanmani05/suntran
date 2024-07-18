@@ -202,8 +202,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                     } '''
 
                 proxies = proxies={
-                    "http": "http://0538c465481b43dcadb5bd9404436e12:@api.zyte.com:8011/",
-                    "https": "http://0538c465481b43dcadb5bd9404436e12:@api.zyte.com:8011/",
+                    "http": "http://eeccf057084145cc9ea49bbf22e8bbc3:@api.zyte.com:8011/",
+                    "https": "http://eeccf057084145cc9ea49bbf22e8bbc3:@api.zyte.com:8011/",
                 }
             
                 data = requests.post(url,headers=self.headers,data=temp_payload,proxies=proxies,verify=False)
