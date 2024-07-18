@@ -210,7 +210,8 @@ class SuntransferPriceSpider(scrapy.Spider):
                 if no_results:
                     break
                 vehicle_lst = response.xpath('//*[contains(@id,"vehicle_list_item")]')
-
+                if i==2 and len(vehicle_lst) == 0:
+                    break
                 
                 for vehicle in vehicle_lst:
                     pax = vehicle.xpath('.//text()[contains(.,"Up to") and contains(.,"passengers")]').get()
