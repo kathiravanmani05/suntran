@@ -99,7 +99,7 @@ class SuntransferPriceSpider(scrapy.Spider):
     def get_records_with_conditions(self,batch_size):
         try:
             rows = session.query(Route).filter(
-                Route.status == 0,
+                #Route.status == 0,
                 Route.retry == 1,
                 Route.from_alternateId.isnot(None),
                 Route.to_alternateId.isnot(None)
