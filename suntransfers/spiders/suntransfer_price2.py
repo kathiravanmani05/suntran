@@ -1,4 +1,4 @@
-import scrapy
+import scrapy,io
 from datetime import datetime
 import requests,re
 import copy
@@ -94,12 +94,15 @@ class SuntransferPriceSpider(scrapy.Spider):
             logger.error("Error saving data to Excel: %s", str(e))
 
     def parse(self, response):
-        file_path = 'sun_input_final.xlsx'  # Your Excel file path
+        #file_path = 'sun_input_final.xlsx'  # Your Excel file path
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/proxies/sun_input_final.xlsx"
+        excel_data = requests.get(excel_url)
+        df = pd.read_excel(io.BytesIO(excel_data.content))
         output_file_path = 'output_data.xlsx'
-        records = self.get_records_from_excel(file_path)
-        records_to_process = records[:3]
+        #records = self.get_records_from_excel(file_path)
+        #records_to_process = records[:3]
         
-        for i, row in enumerate(records_to_process, 1):
+        for i, row in df.iterrows():  # Use iterrows() to iterate over DataFrame rows
             try:
                 output_data = self.parser_data(row)
                 self.output_data.append(output_data)
