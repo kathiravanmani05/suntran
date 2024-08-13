@@ -1,14 +1,17 @@
 import scrapy
 import pandas as pd
-import json
-import csv
+import json,requests,csv
+
 
 class MyTransfersSpider(scrapy.Spider):
     name = 'mytransfers_spider'
     
     def start_requests(self):
         # Load data from Excel
-        df = pd.read_excel('input.xlsx')
+        #df = pd.read_excel('input.xlsx')
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/proxies/input_final.xlsx"
+        excel_data = requests.get(excel_url)
+        df = pd.read_excel(io.BytesIO(excel_data.content))
         
         # Iterate over the specific range of rows
         for i in df.index[0:10]:
