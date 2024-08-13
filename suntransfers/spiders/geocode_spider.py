@@ -1,4 +1,5 @@
-import scrapy
+
+import scrapy,io
 import pandas as pd
 import json,requests,csv
 
@@ -9,7 +10,7 @@ class MyTransfersSpider(scrapy.Spider):
     def start_requests(self):
         # Load data from Excel
         #df = pd.read_excel('input.xlsx')
-        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/proxies/input_final.xlsx"
+        excel_url = "https://raw.githubusercontent.com/kathiravanmani05/suntran/proxies/input.xlsx"
         excel_data = requests.get(excel_url)
         df = pd.read_excel(io.BytesIO(excel_data.content))
         
