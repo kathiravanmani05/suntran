@@ -15,7 +15,7 @@ class MyTransfersSpider(scrapy.Spider):
         df = pd.read_excel(io.BytesIO(excel_data.content))
         
         # Iterate over the specific range of rows
-        for i in df.index[0:10]:
+        for i in df.index:
             # Get the row data
             row_data = df.loc[i]
             Route_start = row_data['Route start']
